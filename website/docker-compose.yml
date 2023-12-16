@@ -1,0 +1,68 @@
+version: "3.9"
+services:
+    wordpress:
+        container_name: wordpress
+        image: wordpress:php8.2-apache
+        restart: always
+        stdin_open: true
+        tty: true
+        environment:
+            WORDPRESS_DB_HOST: mariadb
+            WORDPRESS_DB_USER: siera
+            WORDPRESS_DB_PASSWORD: "Si4r4ù"
+            WORDPRESS_DB_NAME: siera
+        volumes:
+            - ./wordpress_html:/var/www/html
+        networks:
+            - website
+    mariadb:
+        container_name: mariadb
+        image: mariadb
+        restart: always
+        environment:
+            MYSQL_DATABASE: siera
+            MYSQL_USER: siera
+            MYSQL_PASSWORD: "Si4r4ù"
+            MYSQL_RANDOM_ROOT_PASSWORD: 'root_pass'
+        volumes:
+            - ./db_mysql:/var/lib/mysql
+        networks:
+            - website
+    nginx:
+        container_name: nginx
+        image: nginx:latest
+        restart: unless-stopped
+        ports:
+            - 80:80
+            - 443:443
+            - 8080:8080
+        volumes:
+            #- ${PWD}/nginx/conf/only-certbot.conf:/etc/nginx/conf.d/default.conf
+            - ${PWD}/nginx/conf/https-full.conf:/etc/nginx/conf.d/default.conf
+            - ./certbot/conf:/etc/nginx/ssl
+            - ./certbot/data:/var/www/html
+        networks:
+            - website
+            - certbot-network
+            - pterodactyl-network
+
+    certbot:
+        container_name: certbot
+        image: certbot/certbot:latest
+        depends_on:
+            - nginx
+        command: certonly --reinstall --webroot --webroot-path=/var/www/html --email siera@estaca.eu --agree-tos --no-eff-email -d protoweb.siera-estaca.fr
+        volumes:
+            - ./certbot/conf:/etc/letsencrypt
+            - ./certbot/logs:/var/log/letsencrypt
+            - ./certbot/data:/var/www/html
+        networks:
+            - certbot-network
+
+networks:
+    website: 
+    certbot-network:
+    pterodactyl-network: 
+        name: pterodactyl-network
+        external: true
+
