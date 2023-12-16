@@ -74,15 +74,15 @@ Ensuite, nous allons charger la configuration pour récupérer les certificats S
 
 ```yml
 volumes:
-	- ${PWD}/nginx/conf/only-certbot.conf:/etc/nginx/conf.d/default.conf
-	#- ${PWD}/nginx/conf/https-full.conf:/etc/nginx/conf.d/default.conf
-	- ./certbot/conf:/etc/nginx/ssl
-	- ./certbot/data:/var/www/html
+    - ${PWD}/nginx/conf/only-certbot.conf:/etc/nginx/conf.d/default.conf
+    #- ${PWD}/nginx/conf/https-full.conf:/etc/nginx/conf.d/default.conf
+    - ./certbot/conf:/etc/nginx/ssl
+    - ./certbot/data:/var/www/html
 ```
 
 Si cela est bon alors on peut lancer le serveur une première fois avec ces lignes de commandes:
 
-````
+```
 cd ~/siera-server/website && docker compose up
 ```
 
