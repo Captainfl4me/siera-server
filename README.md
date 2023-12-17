@@ -116,6 +116,24 @@ docker compose down && docker compose up -d
 
 Une fois cette commande effectué le serveur devrait être accessible sur le domaine de la siera en https. Il ne reste plus qu'à configurer le site wordpress.
 
+### Installation de Pterodactyl
+
+Pour cela il suffit de faire les deux commandes suivantes:
+
+```
+cd ~/siera-server/pterodactyl/panel
+docker compose up -d
+```
+
+Nous allons maitenant créer un utilisateur. Il faut suivre les instructions dans le terminal. (Au moment de la mise en place du mot de passe il est normal que le terminal n'affiche rien pour le masquer).
+
+```
+cd ~/siera-server/pterodactyl/panel && docker-compose run --rm panel php artisan p:user:make
+```
+
+Le serveur Pterodactyl est maitenant disponible sur le nom de domaine au port 8080. 
+
 ## Gérer les sauvegardes du site
 
 Pour gérer les sauvegardes on utilise l'extension Backup Migration.
+
