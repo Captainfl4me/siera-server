@@ -36,6 +36,7 @@ services:
             - 80:80
             - 443:443
             - 8080:8080
+            - 8443:8443
         volumes:
             - ${PWD}/nginx/conf/https-full.conf:/etc/nginx/conf.d/default.conf
             - ./certbot/conf:/etc/nginx/ssl
@@ -43,7 +44,8 @@ services:
         networks:
             - website
             - certbot-network
-            - pterodactyl-network
+            - pterodactyl-panel
+            - pterodactyl-wings
 
     certbot:
         container_name: certbot
@@ -61,7 +63,10 @@ services:
 networks:
     website: 
     certbot-network:
-    pterodactyl-network: 
-        name: pterodactyl-network
+    pterodactyl-panel: 
+        name: pterodactyl-panel
+        external: true
+    pterodactyl-wings: 
+        name: pterodactyl-wings
         external: true
 

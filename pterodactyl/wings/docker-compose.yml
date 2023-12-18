@@ -4,12 +4,9 @@ services:
   wings:
     image: ghcr.io/pterodactyl/wings:latest
     restart: always
-    networks:
-      - wings0
     ports:
       - "5050:8080"
       - "2022:2022"
-      - "8443:443"
     tty: true
     environment:
       TZ: "UTC"
@@ -25,11 +22,6 @@ services:
       - "/tmp/pterodactyl/:/tmp/pterodactyl/"
       - "/etc/ssl/certs:/etc/ssl/certs:ro"
 networks:
-  wings0:
-    name: wings0
-    driver: bridge
-    ipam:
-      config:
-        - subnet: "172.21.0.0/16"
-    driver_opts:
-      com.docker.network.bridge.name: wings0
+  default:
+    name: pterodactyl-wings
+    external: true

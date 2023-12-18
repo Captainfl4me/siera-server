@@ -1,8 +1,8 @@
 debug: false
 app_name: Pterodactyl
-uuid: 7d3439ee-a140-42ff-ae85-518c510ecfe6
-token_id: YejFLrqVSNgDKjd8
-token: 8vbbydfypALmbAjC3ybzhmFfauNoieloHPuRSnHfIvfz9qM01mpeAvm5CQo4tmeL
+uuid: 70feff86-48c7-4a33-8715-e6aa0cb25d71
+token_id: 13gc5UvC9IiPnP68
+token: j34GZezKkN9ZJCGylwpoqBdFnd9c9l6bUmkPiXsXmmkYm3182AdQYEIpilS6oGtd
 api:
   host: 0.0.0.0
   port: 8443
@@ -56,7 +56,7 @@ docker:
     - 1.0.0.1
     name: pterodactyl_nw
     ispn: false
-    driver: ""
+    driver: bridge
     network_mode: pterodactyl_nw
     is_internal: false
     enable_icc: true

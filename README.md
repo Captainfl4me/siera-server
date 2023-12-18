@@ -10,7 +10,7 @@ Ce rendre sur le site de [OCI](https://www.oracle.com/cloud/sign-in.html) et ent
 
 Pour modifier l'adresse IP et la rendre réservé il faut créer une adresse réservé avec: Networking->IP management-> Reserved public IPs et créer une adresse. Puis, il faut aller dans instances->NOM_DE_LINSTANCE->Attached VNICs->Primary VNIC->IPv4 Addresses->Primary IP->Edit. Puis choisir "no public IP" et mettre à jour et retourner dans "edit" et choisir "reserved public IP".
 Pour modifier les ports accessible depuis l'exterieur du réseau il faut aller dans instances->NOM_DE_LINSTANCE->Attached VNICs->Primary VNIC->Subnet->Default Security List. Ensuite, "Add Ingress Rule" et remplir en source 0.0.0.0/0 choisir le protocol et le port de destination.
-Ici il faut ouvrir les ports 80, 443, 8080 en TCP.
+Ici il faut ouvrir les ports 80, 443, 8080 et 8443 en TCP.
 
 ## Mise en place lors du premier lancement
 
@@ -42,7 +42,7 @@ nvim
 ```
 Une fois sur nvim on peut installer les plugins avec :PlugInstall. Puis, fermer et relancer NeoVim et faire :CHADdeps afin d'installer les dernières dépendances. Normalement maitenant tout les paquets doivent être prêts.
 
-### Installer Docker CE
+### Installer [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
 
 On va ajouter le dépos docker à notre gestionnaire de paquet avec:
 
@@ -76,7 +76,8 @@ Nous allons copier ce repos dans le dossier de l'utilisateur et créer les netwo
 
 ```
 cd ~ && git clone git@github.com:Captainfl4me/siera-server.git
-docker network create pterodactyl-network
+docker network create pterodactyl-panel
+docker network create pterodactyl-wings
 ```
 
 Ensuite, nous allons charger la configuration pour récupérer les certificats SSL afin de lancer le site en HTTPS. Pour cela il faut lancer le serveur avec uniquement le gestionnaire de certificats: 
@@ -106,6 +107,8 @@ Une fois cette commande effectué le serveur devrait être accessible sur le dom
 
 ### Installation de Pterodactyl
 
+> Pour la configuration et la création du tutoriel [lien utile](https://www.youtube.com/watch?v=_ypAmCcIlBE).
+
 Pour cela il suffit de faire les deux commandes suivantes:
 
 ```
@@ -116,10 +119,20 @@ docker compose up -d
 Nous allons maitenant créer un utilisateur. Il faut suivre les instructions dans le terminal. (Au moment de la mise en place du mot de passe il est normal que le terminal n'affiche rien pour le masquer).
 
 ```
-cd ~/siera-server/pterodactyl/panel && docker-compose run --rm panel php artisan p:user:make
+cd ~/siera-server/pterodactyl/panel && docker compose run --rm panel php artisan p:user:make
 ```
 
 Le serveur Pterodactyl est maitenant disponible sur le nom de domaine au port 8080. 
+
+Ensuite, il faut se connecter et créer une "Locations". Puis, créer un "node" avec une connection SSL le paramètre "Behind Proxy" et le port de "Daemon Port" à 8443 et le "Deamon SFTP Port" à 2022. Remplacer le fichier de configuration (pterodactyl/wings/etc/config.yml) avec le texte généré dans l'onglet "Configuration".
+
+Ensuite lancer le noeud wings avec la commande:
+
+```
+cd ~/siera-server/pterodactyl/wings && docker compose up -d
+```
+
+Le node devrait maintenant apparaitre avec un coeur vert devant.
 
 ## Gérer les sauvegardes du site
 

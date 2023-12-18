@@ -73,6 +73,6 @@ services:
 
 networks:
   default:
-      name: pterodactyl-network
+      name: pterodactyl-panel
       external: true
 
