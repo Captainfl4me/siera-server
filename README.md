@@ -101,10 +101,10 @@ Cela signifie que les certificats ont bien été créés, vous pouvez terminer l
 
 ```yml
 volumes:
-	#- ${PWD}/nginx/conf/only-certbot.conf:/etc/nginx/conf.d/default.conf
-	- ${PWD}/nginx/conf/https-full.conf:/etc/nginx/conf.d/default.conf
-	- ./certbot/conf:/etc/nginx/ssl
-	- ./certbot/data:/var/www/html
+    #- ${PWD}/nginx/conf/only-certbot.conf:/etc/nginx/conf.d/default.conf
+    - ${PWD}/nginx/conf/https-full.conf:/etc/nginx/conf.d/default.conf
+    - ./certbot/conf:/etc/nginx/ssl
+    - ./certbot/data:/var/www/html
 ```
 
 Enfin, faites les commandes suivantes:
