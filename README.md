@@ -1,24 +1,33 @@
 # Gestion du server SiERA
 
-## Création de l'instance sur Oracle Cloud
+## Mise en place sur Oracle Cloud Infrastructure
 
-Ce rendre sur le site de [OCI](https://www.oracle.com/cloud/sign-in.html) et entrer dans le tenancy siera. Ensuite, utiliser l'adresse et le mot de passe stocké sur le drive. Ensuite, menu -> intances -> create instance (bien choisir le compartment siera à gauche de l'écran). La configuration plus tard sera faite sur Oracle Linux 9. Il faut ensuite choisir la "shape" en puce Ampère de 4 coeurs et 24Gb de RAM (ressource disponible gratuitement à vie). Ensuite, il faut laisser les paramètres pour la carte réseau virtuelle et copier la clé publique ssh qui sera utilisé pour se connecter la première fois au serveur. Enfin, choisir une taille custom de la partition de boot et entrer 200Gb ainsi qu'une performance VCI maximum.
+### Création de l'instance
+
+Ce rendre sur le site de [OCI](https://www.oracle.com/cloud/sign-in.html) et entrer dans le tenancy siera. Ensuite, utiliser l'adresse et le mot de passe stocké sur le drive. Ensuite, menu -> intances -> create instance (bien choisir le compartment siera à gauche de l'écran). La configuration plus tard sera faite sur Ubuntu 22.04. Il faut ensuite choisir la "shape" en puce Ampère de 4 coeurs et 24Gb de RAM (ressource disponible gratuitement à vie). Ensuite, il faut laisser les paramètres pour la carte réseau virtuelle et copier la clé publique ssh qui sera utilisé pour se connecter la première fois au serveur. Enfin, choisir une taille custom de la partition de boot et entrer 200Gb ainsi qu'une performance VCI maximum.
+
+### Création des règles de réseaux
+
+Pour modifier l'adresse IP et la rendre réservé il faut créer une adresse réservé avec: Networking->IP management-> Reserved public IPs et créer une adresse. Puis, il faut aller dans instances->NOM_DE_LINSTANCE->Attached VNICs->Primary VNIC->IPv4 Addresses->Primary IP->Edit. Puis choisir "no public IP" et mettre à jour et retourner dans "edit" et choisir "reserved public IP".
+Pour modifier les ports accessible depuis l'exterieur du réseau il faut aller dans instances->NOM_DE_LINSTANCE->Attached VNICs->Primary VNIC->Subnet->Default Security List. Ensuite, "Add Ingress Rule" et remplir en source 0.0.0.0/0 choisir le protocol et le port de destination.
+Ici il faut ouvrir les ports 80, 443, 8080 en TCP.
 
 ## Mise en place lors du premier lancement
 
-Pour commencer nous allons mettre à jour les packages avec ```sudo yum update -y```
+Pour commencer nous allons mettre à jour les packages avec ```sudo apt update && sudo apt ugrade -y```
 
 ### Installer git
 
-Simplement faire la commande: ```sudo yum install git -y```
+Normalement git sera déjà installé. On peut le vérifier en faisant un ```git --version```.
+
+Si jamais git n'est pas installé il faut simplement installer le paquet: ```sudo apt install -y git```
 
 ### Installer Neovim (non obligatoire)
 
 Afin d'avoir un éditeur de texte accessible par ssh (comme vscode) nous allons installer NeoVim. D'abord il faut installer le repos EPEL 9 avoir d'avoir accès à plus de paquets. Puis nous allons simplement installer le paquet.
 
 ```
-sudo yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-sudo yum install -y neovim python3-neovim
+sudo apt install -y neovim python3-neovim python3-venv python3-pip
 ```
 
 C'est bon! NeoVim est accessible avec la commande nvim. Ensuite, soit vous êtes très motivié et voulez écrire le fichier de configuration soit vous pouvez cloner ma configuration sur ce [github]() avec:
@@ -35,55 +44,45 @@ Une fois sur nvim on peut installer les plugins avec :PlugInstall. Puis, fermer 
 
 ### Installer Docker CE
 
-On peut refaire une vérification que les packages nécessaires sont installés avec:
+On va ajouter le dépos docker à notre gestionnaire de paquet avec:
 
 ```
-sudo yum update -y
-sudo yum install -y yum-utils
-```
+sudo apt-get update
+sudo apt-get install ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
-On ajoute le repos Docker à notre manageur: ```sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo```. Le nouveau repos devrait apparaitre avec ```sudo dnf repolist```.
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+```
 
 Enfin, on peut installer les paquets:
 
 ```
-sudo yum install docker-ce docker-ce-cli containerd.io
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo systemctl start docker && sudo systemctl enable docker
 sudo groupadd docker && sudo usermod -aG docker $USER
 ```
 
+On pourra vérifier que docker est bien installé avec: ```docker run hello-world```
+
 ### Lancer le conteneur du site web
 
-Nous allons d'abord ouvrir les ports 80, 443 et 5050 pour pouvoir accéder à ces ports depuis l'exterieur du réseau.
+Nous allons copier ce repos dans le dossier de l'utilisateur et créer les networks necéssaires:
 
 ```
-sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
-sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
-sudo firewall-cmd --zone=public --add-port=5050/tcp --permanent
-sudo firewall-cmd --reload
-```
-
-Une fois les installations finalisé on peut copier ce repos dans le dossier de l'utilisateur et créer les networks necéssaires:
-
-```
-cd ~ && git clone ..
+cd ~ && git clone git@github.com:Captainfl4me/siera-server.git
 docker network create pterodactyl-network
 ```
 
-Ensuite, nous allons charger la configuration pour récupérer les certificats SSL afin de lancer le site en HTTPS. Pour cela il faut ouvrir le fichier website/docker-compose.yml et vérifier que dans les volumes du services nginx les deux lignes sont bien présente comme ça: 
-
-```yml
-volumes:
-    - ${PWD}/nginx/conf/only-certbot.conf:/etc/nginx/conf.d/default.conf
-    #- ${PWD}/nginx/conf/https-full.conf:/etc/nginx/conf.d/default.conf
-    - ./certbot/conf:/etc/nginx/ssl
-    - ./certbot/data:/var/www/html
-```
-
-Si cela est bon alors on peut lancer le serveur une première fois avec ces lignes de commandes:
+Ensuite, nous allons charger la configuration pour récupérer les certificats SSL afin de lancer le site en HTTPS. Pour cela il faut lancer le serveur avec uniquement le gestionnaire de certificats: 
 
 ```
-cd ~/siera-server/website && docker compose up
+cd ~/siera-server/website/ && docker compose -f docker-compose-only-cert.yml up
 ```
 
 Il faut attendre que vous voyez ces lignes:
@@ -96,18 +95,7 @@ certbot    | This certificate expires on 2024-03-15.
 certbot    | These files will be updated when the certificate renews.
 ```
 
-Cela signifie que les certificats ont bien été créés, vous pouvez terminer la commande en faisant un CTRL+C. Maintenant, on retourne dans le fichier docker-compose.yml ouvert précédemment et on change les lignes de volumes du service nginx ce cette façon afin de charger la configuration complète (il n'y aura plus besoin de modifier ça).
-
-
-```yml
-volumes:
-    #- ${PWD}/nginx/conf/only-certbot.conf:/etc/nginx/conf.d/default.conf
-    - ${PWD}/nginx/conf/https-full.conf:/etc/nginx/conf.d/default.conf
-    - ./certbot/conf:/etc/nginx/ssl
-    - ./certbot/data:/var/www/html
-```
-
-Enfin, faites les commandes suivantes:
+Cela signifie que les certificats ont bien été créés, vous pouvez terminer la commande en faisant un CTRL+C. Vous pouvez maintenant lancer le serveur avec les commandes suivantes: 
 
 ```
 cd ~/siera-server/website
