@@ -134,6 +134,9 @@ cd ~/siera-server/pterodactyl/wings && docker compose up -d
 
 Le node devrait maintenant apparaitre avec un coeur vert devant.
 
+Ensuite, il faut définir l'allocation des ports que va utiliser Wings pour créer les serveurs de jeu. Pour cela il faut rentrer l'IP du serveur et la fourchette de ports.
+> Par exemple: IP adress = 141.145.199.141 et Ports=27000-27099
+
 ## Gérer les sauvegardes du site
 
 Pour gérer les sauvegardes on utilise l'extension Backup Migration.
