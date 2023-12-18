@@ -5,7 +5,6 @@ services:
     image: ghcr.io/pterodactyl/wings:latest
     restart: always
     ports:
-      - "5050:8080"
       - "2022:2022"
     tty: true
     environment:
