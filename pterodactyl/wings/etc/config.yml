@@ -1,0 +1,18 @@
+debug: false
+uuid: 7d3439ee-a140-42ff-ae85-518c510ecfe6
+token_id: YejFLrqVSNgDKjd8
+token: 8vbbydfypALmbAjC3ybzhmFfauNoieloHPuRSnHfIvfz9qM01mpeAvm5CQo4tmeL
+api:
+  host: 0.0.0.0
+  port: 8443
+  ssl:
+    enabled: false
+    cert: /etc/letsencrypt/live/protoweb.siera-estaca.fr/fullchain.pem
+    key: /etc/letsencrypt/live/protoweb.siera-estaca.fr/privkey.pem
+  upload_limit: 100
+system:
+  data: /var/lib/pterodactyl/volumes
+  sftp:
+    bind_port: 2022
+allowed_mounts: []
+remote: 'https://protoweb.siera-estaca.fr:8080'
